@@ -30,7 +30,7 @@ public class EsTestController {
         SearchResponse search = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
         SearchHit[] hits = search.getHits().getHits();
         for (int i = 0; i < hits.length; i++) {
-            log.info("第     i     个个个个个：{}", hits[i]);
+            log.info("第i个：{}", hits[i]);
         }
     }
 }
