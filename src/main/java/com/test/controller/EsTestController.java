@@ -1,4 +1,4 @@
-package ma.jd.elasticsearchtest.controller;
+package com.test.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class EsTestController {
         SearchResponse search = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
         SearchHit[] hits = search.getHits().getHits();
         for (int i = 0; i < hits.length; i++) {
-            log.info("第i个个个个个个：{}", hits[i]);
+            log.info("第i个：{}", hits[i]);
         }
     }
 }

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.test.mapper.CampaignMapper">
+
+    <select id="countCampaignUser" resultType="hashmap">
+        SELECT c1.limit_every_num           AS limitEveryNum,
+               c1.limit_num                 AS limitNum,
+               c1.limit_times               AS limitTimes,
+               IFNULL(count(c3.user_id), 0) AS times,
+               IFNULL(sum(c3.num), 0)       AS `count`,
+               c1.user_level                AS userLevel,
+               c1.user_label                AS userLabel,
+               c1.id
+        FROM campaign c1
+                 LEFT JOIN campaign_records c3 ON c3.campaign_id = c1.id
+        WHERE c3.create_time &gt;= c1.start_date
+          AND c3.create_time &lt;= c1.end_date
+          AND c3.product_id = #{productId}
+          AND c3.user_id = #{userId}
+          AND c1.id = #{id}
+    </select>
+
+    <select id="listCampaignZhijiangRule" resultType="hashmap">
+        SELECT c1.*,
+               c2.product_id,
+               c2.product_price,
+               c2.stock_num
+        FROM campaign c1
+                 LEFT JOIN campaign_zhijiang_rule c2
+                           ON c1.id = c2.campaign_id
+        WHERE c2.product_id = #{productId}
+          AND c2.channel_id = #{channelId}
+          AND c2.id IS NOT NULL
+    </select>
+
+    <select id="listCampaignXianshigouRule" resultType="hashmap">
+        SELECT c1.*,
+               c2.product_id,
+               c2.product_price,
+               c2.stock_num
+        FROM campaign c1
+                 LEFT JOIN campaign_xianshigou_rule c2
+                           ON c1.id = c2.campaign_id
+        WHERE c2.product_id = #{productId}
+          AND c2.channel_id = #{channelId}
+          AND c2.id IS NOT NULL
+    </select>
+
+    <select id="listCampaignManjianRule" resultType="hashmap">
+        SELECT c1.*,
+               c2.manjian_type,
+               c2.stock_num,
+               c2.min_total,
+               c2.max_total,
+               c2.discount
+        FROM campaign c1
+                 LEFT JOIN campaign_manjian_rule c2
+                           ON c1.id = c2.campaign_id
+        WHERE c2.product_id = #{productId}
+          AND c2.channel_id = #{channelId}
+          AND c2.id IS NOT NULL
+    </select>
+
+    <select id="listCampaignJiajiagouRule" resultType="hashmap">
+        SELECT c1.*,
+               c2.stock_num,
+               c2.gift_id,
+               c2.gift_price
+        FROM campaign c1
+                 LEFT JOIN campaign_Jiajiagou_rule c2
+                           ON c1.id = c2.campaign_id
+        WHERE c2.product_id = #{productId}
+          AND c2.channel_id = #{channelId}
+          AND c2.id IS NOT NULL
+    </select>
+</mapper>

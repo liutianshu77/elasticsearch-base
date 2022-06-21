@@ -1,0 +1,121 @@
+package com.test.drools;
+
+import java.util.Map;
+import java.util.List;
+
+import com.test.entity.User;
+import com.test.entity.Product;
+import com.test.entity.Channel;
+import com.test.common.R;
+
+import com.test.mapper.CampaignMapper;
+import com.test.mapper.CampaignRecordsMapper
+import ch.qos.logback.core.net.SyslogOutputStream;
+
+global CampaignMapper campaignMapper;
+global CampaignRecordsMapper campaignRecordsMapper;
+
+rule "zhijiang"
+    when
+        $r:R()
+        $c:Channel()
+        $p:Product()
+        $u:User()
+        $map1:Map() // 本次想要购买的数量<=库存数量
+            from campaignMapper.listCampaignZhijiangRule($p.getId(), $c.getId())
+        $map:Map((get("userLevel") == "" || (get("userLevel") != "" && get("userLevel") == $u.getLevel()))
+                &&(get("userLabel") == "" || (get("userLabel") != "" && get("userLabel") == $u.getLabel()))
+                && get("times") < get("limitTimes") // 已经购买的次数<限制购买的次数
+                && $p.getNum() <= get("limitEveryNum") // 本次想要购买的数量<=限制每次购买的数量
+                && ($p.getNum() + get("count")) <= get("limitNum")) // 本次想要购买的数量+已经购买的数量<=限制购买的数量
+            from campaignMapper.countCampaignUser($map1.get("id"), $p.getId(), $u.getId())
+    then
+        $r.getResultList().add("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $map1.get("product_price"));
+        System.out.println("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $map1.get("product_price"));
+end
+
+rule "xianshigou"
+    when
+        $r:R()
+        $c:Channel()
+        $p:Product()
+        $u:User()
+        $map1:Map(0 != get("stock_num")
+                && $p.getNum() <= get("stock_num")) from campaignMapper.listCampaignXianshigouRule($p.getId(), $c.getId())
+        $map:Map((get("userLevel") == "" || (get("userLevel") != "" && get("userLevel") == $u.getLevel()))
+                &&(get("userLabel") == "" || (get("userLabel") != "" && get("userLabel") == $u.getLabel()))
+                && get("times") < get("limitTimes")
+                && $p.getNum() <= get("limitEveryNum")
+                && ($p.getNum() + get("count")) <= get("limitNum"))
+            from campaignMapper.countCampaignUser($map1.get("id"), $p.getId(), $u.getId())
+    then
+        $r.getResultList().add("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $map1.get("product_price"));
+        System.out.println("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $map1.get("product_price"));
+end
+
+rule "manjian-1"
+    when
+        $r:R()
+        $c:Channel()
+        $p:Product()
+        $u:User()
+        $map1:Map(0 != get("stock_num")
+                && $p.getNum() <= get("stock_num"))
+            from campaignMapper.listCampaignManjianRule($p.getId(), $c.getId())
+        $map:Map((get("userLevel") == "" || (get("userLevel") != "" && get("userLevel") == $u.getLevel()))
+                &&(get("userLabel") == "" || (get("userLabel") != "" && get("userLabel") == $u.getLabel()))
+                && get("times") < get("limitTimes")
+                && $p.getNum() <= get("limitEveryNum")
+                && ($p.getNum() + get("count")) <= get("limitNum")
+                && $p.getNum() >= $map1.get("min_total")
+                && $p.getNum() < $map1.get("max_total")
+                && $map1.get("manjian_type") == 1
+)
+            from campaignMapper.countCampaignUser($map1.get("id"), $p.getId(), $u.getId())
+    then
+        $r.getResultList().add("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $p.getPrice() + "×" + "用户购买商品数量" + $p.getNum() + "-" + $p.getPrice() + "×折扣数量" + $map1.get("discount"));
+        System.out.println("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $p.getPrice() + "×" + "用户购买商品数量" + $p.getNum() + "-" + $p.getPrice() + "×折扣数量" + $map1.get("discount"));
+end
+
+rule "manjian-2"
+    when
+        $r:R()
+        $c:Channel()
+        $p:Product()
+        $u:User()
+        $map1:Map(0 != get("stock_num")
+                && $p.getNum() <= get("stock_num"))
+            from campaignMapper.listCampaignManjianRule($p.getId(), $c.getId())
+        $map:Map((get("userLevel") == "" || (get("userLevel") != "" && get("userLevel") == $u.getLevel()))
+                &&(get("userLabel") == "" || (get("userLabel") != "" && get("userLabel") == $u.getLabel()))
+                && get("times") < get("limitTimes")
+                && $p.getNum() <= get("limitEveryNum")
+                && ($p.getNum() + get("count")) <= get("limitNum")
+                && $p.getTotalPrice() >= $map1.get("min_total")
+                && $p.getTotalPrice() < $map1.get("max_total")
+                && $map1.get("manjian_type") == 2)
+            from campaignMapper.countCampaignUser($map1.get("id"), $p.getId(), $u.getId())
+    then
+        $r.getResultList().add("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $p.getPrice() + "×" + "用户购买商品数量" + $p.getNum() + "-满件价格" + $map1.get("discount"));
+        System.out.println("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $p.getPrice() + "×" + "用户购买商品数量" + $p.getNum() + "-满件价格" + $map1.get("discount"));
+end
+
+rule "jiajiagou"
+    when
+        $r:R()
+        $c:Channel()
+        $p:Product()
+        $u:User()
+        $map1:Map(0 != get("stock_num")
+                && $p.getNum() <= get("stock_num"))
+            from campaignMapper.listCampaignJiajiagouRule($p.getId(), $c.getId())
+        $map:Map((get("userLevel") == "" || (get("userLevel") != "" && get("userLevel") == $u.getLevel()))
+                &&(get("userLabel") == "" || (get("userLabel") != "" && get("userLabel") == $u.getLabel()))
+                && get("times") < get("limitTimes")
+                && $p.getNum() <= get("limitEveryNum")
+                && ($p.getNum() + get("count")) <= get("limitNum"))
+            from campaignMapper.countCampaignUser($map1.get("id"), $p.getId(), $u.getId())
+    then
+        $r.getResultList().add("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $p.getPrice() + "。可选商品ID：" + $map1.get("gift_id") + "可选商品价格：" + $map1.get("gift_price"));
+        System.out.println("可参加活动ID：" + $map1.get("id") + "。商品价格：" + $p.getPrice() + "。可选商品ID：" + $map1.get("gift_id") + "可选商品价格：" + $map1.get("gift_price"));
+end
