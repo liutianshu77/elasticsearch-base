@@ -34,7 +34,7 @@ public class DroolsServiceImpl implements DroolsService {
 
     public R listRules(CampaignOrder campaignOrder) {
         System.setProperty("drools.dateformat", "yyyy-MM-dd");
-        KieSession kieSession = kieTemplate.getKieSession("zhijiang.drl", "xianshigou.drl", "manjian-1.drl", "manjian-2", "jiajiagou.drl");
+        KieSession kieSession = kieTemplate.getKieSession("zhijiang.drl");
         kieSession.setGlobal("campaignMapper", campaignMapper);
         kieSession.setGlobal("campaignRecordsMapper", campaignRecordsMapper);
         User user = userMapper.selectById(campaignOrder.getUserId());
